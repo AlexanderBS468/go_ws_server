@@ -25,6 +25,12 @@ Planned runtime flow:
 3. Events are published to a channel.
 4. Connected clients subscribed to that channel receive the update.
 
+Current WebSocket endpoint:
+
+```text
+ws://localhost:8080/ws
+```
+
 ## Running
 
 ```bash
@@ -67,6 +73,12 @@ http://localhost:8080
 2. Сервис принимает JSON-сообщения с событиями.
 3. События публикуются в канал.
 4. Подключенные клиенты, подписанные на этот канал, получают обновление.
+
+Текущий WebSocket endpoint:
+
+```text
+ws://localhost:8080/ws
+```
 
 ## Запуск
 
