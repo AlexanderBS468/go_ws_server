@@ -43,6 +43,9 @@ Open:
 http://localhost:8080
 ```
 
+The page includes a small browser client for sending messages to the WebSocket
+endpoint and reading the echoed response.
+
 ## Docker
 
 ```bash
@@ -91,6 +94,9 @@ go run .
 ```text
 http://localhost:8080
 ```
+
+Страница содержит небольшой браузерный клиент для отправки сообщений в
+WebSocket endpoint и просмотра echo-ответа.
 
 ## Docker
 

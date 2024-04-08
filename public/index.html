@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>go-ws-server</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <header class="header">
+          <div>
+            <h1>go-ws-server</h1>
+            <p>Realtime event logger</p>
+          </div>
+          <span id="status" class="status status-off">Disconnected</span>
+        </header>
+
+        <form id="message-form" class="composer">
+          <label for="message">Message</label>
+          <div class="message-row">
+            <input id="message" name="message" type="text" value="Hello WebSocket" autocomplete="off">
+            <button type="submit">Send</button>
+          </div>
+        </form>
+
+        <section class="log-wrap">
+          <h2>Event log</h2>
+          <div id="log" class="log"></div>
+        </section>
+      </section>
+    </main>
+
+    <script src="/app.js"></script>
+  </body>
+</html>

@@ -1,0 +1,149 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #f3f5f7;
+  color: #1f2933;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.shell {
+  width: min(840px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 48px 0;
+}
+
+.panel {
+  background: #ffffff;
+  border: 1px solid #d9e2ec;
+  border-radius: 8px;
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 28px;
+  font-weight: 700;
+}
+
+h2 {
+  margin-bottom: 12px;
+  font-size: 16px;
+}
+
+p {
+  margin-top: 6px;
+  color: #627d98;
+}
+
+.status {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.status-off {
+  background: #ffe3e3;
+  color: #ab091e;
+}
+
+.status-on {
+  background: #d3f9d8;
+  color: #0b7285;
+}
+
+.composer {
+  margin-bottom: 24px;
+}
+
+label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.message-row {
+  display: flex;
+  gap: 10px;
+}
+
+input {
+  min-width: 0;
+  flex: 1;
+  border: 1px solid #bcccdc;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+button {
+  border: 0;
+  border-radius: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 10px 16px;
+}
+
+button:disabled {
+  background: #9fb3c8;
+  cursor: not-allowed;
+}
+
+.log {
+  min-height: 220px;
+  max-height: 360px;
+  overflow: auto;
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  background: #102a43;
+  color: #f0f4f8;
+  font-family: Menlo, Consolas, monospace;
+  font-size: 14px;
+  padding: 12px;
+}
+
+.log-entry {
+  padding: 4px 0;
+  white-space: pre-wrap;
+}
+
+@media (max-width: 560px) {
+  .shell {
+    width: min(100% - 20px, 840px);
+    padding: 20px 0;
+  }
+
+  .panel {
+    padding: 16px;
+  }
+
+  .header,
+  .message-row {
+    flex-direction: column;
+  }
+
+  button {
+    width: 100%;
+  }
+}

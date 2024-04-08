@@ -12,6 +12,7 @@ FROM alpine:3.18
 WORKDIR /app
 
 COPY --from=builder /app/bin/go-ws-server ./go-ws-server
+COPY --from=builder /app/public ./public
 
 EXPOSE 8080
 

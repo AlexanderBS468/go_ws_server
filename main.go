@@ -14,11 +14,12 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("go-ws-server is running\n"))
 	})
 	mux.HandleFunc("/ws", handleWebSocket)
+	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
 	addr := ":8080"
 	log.Printf("server listening on %s", addr)
