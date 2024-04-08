@@ -7,6 +7,8 @@ Realtime event logger for a production system.
 - [English](#english)
 - [Русский](#russian)
 
+<a id="english"></a>
+
 ## English
 
 `go-ws-server` is a small Go service for realtime logging and delivery of
@@ -35,7 +37,21 @@ Open:
 http://localhost:8080
 ```
 
-## Russian
+## Docker
+
+```bash
+docker compose up --build
+```
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+<a id="russian"></a>
+
+## Русский
 
 `go-ws-server` - небольшой Go-сервис для realtime-логирования и доставки
 событий боевой системы через WebSocket.
@@ -56,6 +72,18 @@ http://localhost:8080
 
 ```bash
 go run .
+```
+
+Открой:
+
+```text
+http://localhost:8080
+```
+
+## Docker
+
+```bash
+docker compose up --build
 ```
 
 Открой:
