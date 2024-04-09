@@ -31,6 +31,15 @@ Current WebSocket endpoint:
 ws://localhost:8080/ws
 ```
 
+Message format:
+
+```json
+{
+  "event": "message",
+  "data": "Hello WebSocket"
+}
+```
+
 ## Running
 
 ```bash
@@ -84,6 +93,15 @@ http://localhost:8080
 
 ```text
 ws://localhost:8080/ws
+```
+
+Формат сообщения:
+
+```json
+{
+  "event": "message",
+  "data": "Hello WebSocket"
+}
 ```
 
 ## Запуск

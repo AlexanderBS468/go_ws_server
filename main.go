@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -16,6 +18,13 @@ var upgrader = websocket.Upgrader{
 type hub struct {
 	mu      sync.Mutex
 	clients map[*websocket.Conn]struct{}
+}
+
+type socketMessage struct {
+	Event string `json:"event"`
+	Data  string `json:"data"`
+	From  string `json:"from,omitempty"`
+	Ts    int64  `json:"ts"`
 }
 
 func newHub() *hub {
@@ -38,12 +47,12 @@ func (h *hub) remove(conn *websocket.Conn) {
 	delete(h.clients, conn)
 }
 
-func (h *hub) broadcast(messageType int, message []byte) {
+func (h *hub) broadcast(message []byte) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
 	for conn := range h.clients {
-		if err := conn.WriteMessage(messageType, message); err != nil {
+		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			log.Printf("websocket broadcast failed: %s: %v", conn.RemoteAddr(), err)
 			_ = conn.Close()
 			delete(h.clients, conn)
@@ -88,8 +97,37 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			log.Printf("websocket disconnected: %s: %v", conn.RemoteAddr(), err)
 			return
 		}
+		if messageType != websocket.TextMessage {
+			log.Printf("unsupported websocket message type from %s: %d", conn.RemoteAddr(), messageType)
+			continue
+		}
 
-		log.Printf("websocket message from %s: %s", conn.RemoteAddr(), message)
-		h.broadcast(messageType, message)
+		payload, err := normalizeMessage(conn.RemoteAddr().String(), message)
+		if err != nil {
+			log.Printf("invalid websocket message from %s: %v", conn.RemoteAddr(), err)
+			continue
+		}
+
+		log.Printf("websocket message from %s: %s", conn.RemoteAddr(), payload)
+		h.broadcast(payload)
 	}
+}
+
+func normalizeMessage(from string, data []byte) ([]byte, error) {
+	var msg socketMessage
+	if err := json.Unmarshal(data, &msg); err != nil {
+		return nil, err
+	}
+
+	if msg.Event == "" {
+		msg.Event = "message"
+	}
+	if msg.From == "" {
+		msg.From = from
+	}
+	if msg.Ts == 0 {
+		msg.Ts = time.Now().Unix()
+	}
+
+	return json.Marshal(msg)
 }

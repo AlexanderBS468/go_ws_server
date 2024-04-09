@@ -1,5 +1,6 @@
 const statusEl = document.getElementById("status");
 const form = document.getElementById("message-form");
+const eventInput = document.getElementById("event");
 const input = document.getElementById("message");
 const log = document.getElementById("log");
 const button = form.querySelector("button");
@@ -23,7 +24,12 @@ socket.addEventListener("open", () => {
 });
 
 socket.addEventListener("message", (event) => {
-  writeLog("received", event.data);
+  try {
+    const payload = JSON.parse(event.data);
+    writeLog("received", JSON.stringify(payload, null, 2));
+  } catch (error) {
+    writeLog("received", event.data);
+  }
 });
 
 socket.addEventListener("close", () => {
@@ -45,7 +51,12 @@ form.addEventListener("submit", (event) => {
     return;
   }
 
-  socket.send(message);
-  writeLog("sent", message);
+  const payload = {
+    event: eventInput.value.trim() || "message",
+    data: message,
+  };
+
+  socket.send(JSON.stringify(payload));
+  writeLog("sent", JSON.stringify(payload, null, 2));
   input.select();
 });
