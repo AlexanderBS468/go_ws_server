@@ -46,6 +46,9 @@ http://localhost:8080
 The page includes a small browser client for sending messages to the WebSocket
 endpoint and reading the echoed response.
 
+Open the page in two browser tabs to see messages broadcast between connected
+clients.
+
 ## Docker
 
 ```bash
@@ -97,6 +100,9 @@ http://localhost:8080
 
 Страница содержит небольшой браузерный клиент для отправки сообщений в
 WebSocket endpoint и просмотра echo-ответа.
+
+Открой страницу в двух вкладках браузера, чтобы увидеть рассылку сообщений
+между подключенными клиентами.
 
 ## Docker
 
