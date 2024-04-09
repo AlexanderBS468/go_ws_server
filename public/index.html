@@ -17,6 +17,14 @@
           <span id="status" class="status status-off">Disconnected</span>
         </header>
 
+        <form id="connection-form" class="composer">
+          <label for="channel">Channel</label>
+          <div class="message-row">
+            <input id="channel" name="channel" type="text" value="system" autocomplete="off">
+            <button id="connect" type="submit">Connect</button>
+          </div>
+        </form>
+
         <form id="message-form" class="composer">
           <label for="event">Event</label>
           <input id="event" name="event" type="text" value="message" autocomplete="off">

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,45 +18,52 @@ var upgrader = websocket.Upgrader{
 
 type hub struct {
 	mu      sync.Mutex
-	clients map[*websocket.Conn]struct{}
+	clients map[string]map[*websocket.Conn]struct{}
 }
 
 type socketMessage struct {
-	Event string `json:"event"`
-	Data  string `json:"data"`
-	From  string `json:"from,omitempty"`
-	Ts    int64  `json:"ts"`
+	Event   string `json:"event"`
+	Channel string `json:"channel"`
+	Data    string `json:"data"`
+	From    string `json:"from,omitempty"`
+	Ts      int64  `json:"ts"`
 }
 
 func newHub() *hub {
 	return &hub{
-		clients: make(map[*websocket.Conn]struct{}),
+		clients: make(map[string]map[*websocket.Conn]struct{}),
 	}
 }
 
-func (h *hub) add(conn *websocket.Conn) {
+func (h *hub) add(channel string, conn *websocket.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	h.clients[conn] = struct{}{}
+	if h.clients[channel] == nil {
+		h.clients[channel] = make(map[*websocket.Conn]struct{})
+	}
+	h.clients[channel][conn] = struct{}{}
 }
 
-func (h *hub) remove(conn *websocket.Conn) {
+func (h *hub) remove(channel string, conn *websocket.Conn) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	delete(h.clients, conn)
+	delete(h.clients[channel], conn)
+	if len(h.clients[channel]) == 0 {
+		delete(h.clients, channel)
+	}
 }
 
-func (h *hub) broadcast(message []byte) {
+func (h *hub) broadcast(channel string, message []byte) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
-	for conn := range h.clients {
+	for conn := range h.clients[channel] {
 		if err := conn.WriteMessage(websocket.TextMessage, message); err != nil {
 			log.Printf("websocket broadcast failed: %s: %v", conn.RemoteAddr(), err)
 			_ = conn.Close()
-			delete(h.clients, conn)
+			delete(h.clients[channel], conn)
 		}
 	}
 }
@@ -67,7 +75,8 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("go-ws-server is running\n"))
 	})
-	mux.HandleFunc("/ws", h.handleWebSocket)
+	mux.HandleFunc("/ws", requireChannel)
+	mux.HandleFunc("/ws/", h.handleWebSocket)
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
 	addr := ":8080"
@@ -77,19 +86,29 @@ func main() {
 	}
 }
 
+func requireChannel(w http.ResponseWriter, r *http.Request) {
+	http.Error(w, "websocket channel is required", http.StatusBadRequest)
+}
+
 func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	channel := strings.TrimPrefix(r.URL.Path, "/ws/")
+	if channel == "" || channel == r.URL.Path {
+		http.Error(w, "websocket channel is required", http.StatusBadRequest)
+		return
+	}
+
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("websocket upgrade failed: %v", err)
 		return
 	}
 	defer func() {
-		h.remove(conn)
+		h.remove(channel, conn)
 		_ = conn.Close()
 	}()
 
-	h.add(conn)
-	log.Printf("websocket connected: %s", conn.RemoteAddr())
+	h.add(channel, conn)
+	log.Printf("websocket connected: %s channel=%s", conn.RemoteAddr(), channel)
 
 	for {
 		messageType, message, err := conn.ReadMessage()
@@ -102,18 +121,18 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		payload, err := normalizeMessage(conn.RemoteAddr().String(), message)
+		payload, err := normalizeMessage(channel, conn.RemoteAddr().String(), message)
 		if err != nil {
 			log.Printf("invalid websocket message from %s: %v", conn.RemoteAddr(), err)
 			continue
 		}
 
-		log.Printf("websocket message from %s: %s", conn.RemoteAddr(), payload)
-		h.broadcast(payload)
+		log.Printf("websocket message from %s channel=%s: %s", conn.RemoteAddr(), channel, payload)
+		h.broadcast(channel, payload)
 	}
 }
 
-func normalizeMessage(from string, data []byte) ([]byte, error) {
+func normalizeMessage(channel string, from string, data []byte) ([]byte, error) {
 	var msg socketMessage
 	if err := json.Unmarshal(data, &msg); err != nil {
 		return nil, err
@@ -121,6 +140,9 @@ func normalizeMessage(from string, data []byte) ([]byte, error) {
 
 	if msg.Event == "" {
 		msg.Event = "message"
+	}
+	if msg.Channel == "" {
+		msg.Channel = channel
 	}
 	if msg.From == "" {
 		msg.From = from

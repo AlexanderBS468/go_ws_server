@@ -28,7 +28,7 @@ Planned runtime flow:
 Current WebSocket endpoint:
 
 ```text
-ws://localhost:8080/ws
+ws://localhost:8080/ws/{channel}
 ```
 
 Message format:
@@ -56,7 +56,7 @@ The page includes a small browser client for sending messages to the WebSocket
 endpoint and reading the echoed response.
 
 Open the page in two browser tabs to see messages broadcast between connected
-clients.
+clients in the same channel.
 
 ## Docker
 
@@ -92,7 +92,7 @@ http://localhost:8080
 Текущий WebSocket endpoint:
 
 ```text
-ws://localhost:8080/ws
+ws://localhost:8080/ws/{channel}
 ```
 
 Формат сообщения:
@@ -120,7 +120,7 @@ http://localhost:8080
 WebSocket endpoint и просмотра echo-ответа.
 
 Открой страницу в двух вкладках браузера, чтобы увидеть рассылку сообщений
-между подключенными клиентами.
+между подключенными клиентами в одном канале.
 
 ## Docker
 
