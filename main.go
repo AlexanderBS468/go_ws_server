@@ -19,9 +19,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type hub struct {
-	mu        sync.Mutex
-	clients   map[string]map[*websocket.Conn]struct{}
-	publisher *redisPublisher
+	mu      sync.Mutex
+	clients map[string]map[*websocket.Conn]struct{}
+	broker  *redisBroker
 }
 
 type socketMessage struct {
@@ -32,19 +32,19 @@ type socketMessage struct {
 	Ts      int64  `json:"ts"`
 }
 
-type redisPublisher struct {
+type redisBroker struct {
 	pool *redis.Pool
 }
 
-func newHub(publisher *redisPublisher) *hub {
+func newHub(broker *redisBroker) *hub {
 	return &hub{
-		clients:   make(map[string]map[*websocket.Conn]struct{}),
-		publisher: publisher,
+		clients: make(map[string]map[*websocket.Conn]struct{}),
+		broker:  broker,
 	}
 }
 
-func newRedisPublisher(addr string) *redisPublisher {
-	return &redisPublisher{
+func newRedisBroker(addr string) *redisBroker {
+	return &redisBroker{
 		pool: &redis.Pool{
 			MaxIdle:   3,
 			MaxActive: 10,
@@ -55,8 +55,8 @@ func newRedisPublisher(addr string) *redisPublisher {
 	}
 }
 
-func (p *redisPublisher) publish(channel string, message []byte) error {
-	conn := p.pool.Get()
+func (b *redisBroker) publish(channel string, message []byte) error {
+	conn := b.pool.Get()
 	defer conn.Close()
 
 	if err := conn.Err(); err != nil {
@@ -65,6 +65,31 @@ func (p *redisPublisher) publish(channel string, message []byte) error {
 
 	_, err := conn.Do("PUBLISH", channel, message)
 	return err
+}
+
+func (b *redisBroker) subscribe(pattern string, handler func(channel string, message []byte)) error {
+	conn := b.pool.Get()
+	defer conn.Close()
+
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
+	psc := redis.PubSubConn{Conn: conn}
+	if err := psc.PSubscribe(pattern); err != nil {
+		return err
+	}
+
+	for {
+		switch event := psc.Receive().(type) {
+		case redis.Message:
+			handler(event.Channel, event.Data)
+		case redis.Subscription:
+			log.Printf("redis subscription: kind=%s channel=%s count=%d", event.Kind, event.Channel, event.Count)
+		case error:
+			return event
+		}
+	}
 }
 
 func (h *hub) add(channel string, conn *websocket.Conn) {
@@ -106,7 +131,10 @@ func main() {
 		redisAddr = "localhost:6379"
 	}
 
-	h := newHub(newRedisPublisher(redisAddr))
+	broker := newRedisBroker(redisAddr)
+	h := newHub(broker)
+	go runRedisSubscriber(broker, h)
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -120,6 +148,16 @@ func main() {
 	log.Printf("server listening on %s", addr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
+	}
+}
+
+func runRedisSubscriber(broker *redisBroker, h *hub) {
+	for {
+		log.Printf("redis subscriber connecting")
+		if err := broker.subscribe("*", h.broadcast); err != nil {
+			log.Printf("redis subscriber stopped: %v", err)
+			time.Sleep(2 * time.Second)
+		}
 	}
 }
 
@@ -165,10 +203,9 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("websocket message from %s channel=%s: %s", conn.RemoteAddr(), channel, payload)
-		if err := h.publisher.publish(channel, payload); err != nil {
+		if err := h.broker.publish(channel, payload); err != nil {
 			log.Printf("redis publish failed channel=%s: %v", channel, err)
 		}
-		h.broadcast(channel, payload)
 	}
 }
 

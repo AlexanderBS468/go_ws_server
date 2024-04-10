@@ -41,7 +41,8 @@ Message format:
 ```
 
 Incoming WebSocket events are published to Redis using the WebSocket channel
-name as the Redis channel.
+name as the Redis channel. The app also subscribes to Redis and broadcasts
+received events to browser clients in the matching channel.
 
 ## Running
 
@@ -110,7 +111,8 @@ ws://localhost:8080/ws/{channel}
 ```
 
 Входящие WebSocket-события публикуются в Redis, где имя WebSocket-канала
-используется как Redis-канал.
+используется как Redis-канал. Приложение также подписывается на Redis и
+рассылает полученные события браузерным клиентам в соответствующем канале.
 
 ## Запуск
 
