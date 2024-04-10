@@ -70,6 +70,8 @@ Open:
 http://localhost:8080
 ```
 
+The compose setup also starts a local Redis container on `localhost:6379`.
+
 <a id="russian"></a>
 
 ## Русский
@@ -133,3 +135,5 @@ docker compose up --build
 ```text
 http://localhost:8080
 ```
+
+Compose-конфигурация также запускает локальный Redis на `localhost:6379`.
