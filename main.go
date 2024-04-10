@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/gomodule/redigo/redis"
 	"github.com/gorilla/websocket"
 )
 
@@ -17,8 +19,9 @@ var upgrader = websocket.Upgrader{
 }
 
 type hub struct {
-	mu      sync.Mutex
-	clients map[string]map[*websocket.Conn]struct{}
+	mu        sync.Mutex
+	clients   map[string]map[*websocket.Conn]struct{}
+	publisher *redisPublisher
 }
 
 type socketMessage struct {
@@ -29,10 +32,39 @@ type socketMessage struct {
 	Ts      int64  `json:"ts"`
 }
 
-func newHub() *hub {
+type redisPublisher struct {
+	pool *redis.Pool
+}
+
+func newHub(publisher *redisPublisher) *hub {
 	return &hub{
-		clients: make(map[string]map[*websocket.Conn]struct{}),
+		clients:   make(map[string]map[*websocket.Conn]struct{}),
+		publisher: publisher,
 	}
+}
+
+func newRedisPublisher(addr string) *redisPublisher {
+	return &redisPublisher{
+		pool: &redis.Pool{
+			MaxIdle:   3,
+			MaxActive: 10,
+			Dial: func() (redis.Conn, error) {
+				return redis.Dial("tcp", addr)
+			},
+		},
+	}
+}
+
+func (p *redisPublisher) publish(channel string, message []byte) error {
+	conn := p.pool.Get()
+	defer conn.Close()
+
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
+	_, err := conn.Do("PUBLISH", channel, message)
+	return err
 }
 
 func (h *hub) add(channel string, conn *websocket.Conn) {
@@ -69,7 +101,12 @@ func (h *hub) broadcast(channel string, message []byte) {
 }
 
 func main() {
-	h := newHub()
+	redisAddr := os.Getenv("REDIS_ADDR")
+	if redisAddr == "" {
+		redisAddr = "localhost:6379"
+	}
+
+	h := newHub(newRedisPublisher(redisAddr))
 	mux := http.NewServeMux()
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
@@ -128,6 +165,9 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		}
 
 		log.Printf("websocket message from %s channel=%s: %s", conn.RemoteAddr(), channel, payload)
+		if err := h.publisher.publish(channel, payload); err != nil {
+			log.Printf("redis publish failed channel=%s: %v", channel, err)
+		}
 		h.broadcast(channel, payload)
 	}
 }

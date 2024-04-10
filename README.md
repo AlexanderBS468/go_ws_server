@@ -40,6 +40,9 @@ Message format:
 }
 ```
 
+Incoming WebSocket events are published to Redis using the WebSocket channel
+name as the Redis channel.
+
 ## Running
 
 ```bash
@@ -105,6 +108,9 @@ ws://localhost:8080/ws/{channel}
   "data": "Hello WebSocket"
 }
 ```
+
+Входящие WebSocket-события публикуются в Redis, где имя WebSocket-канала
+используется как Redis-канал.
 
 ## Запуск
 
