@@ -50,6 +50,13 @@ received events to browser clients in the matching channel.
 go run .
 ```
 
+Configuration defaults:
+
+```text
+SERVER_PORT=8080
+REDIS_ADDR=localhost:6379
+```
+
 Open:
 
 ```text
@@ -118,6 +125,13 @@ ws://localhost:8080/ws/{channel}
 
 ```bash
 go run .
+```
+
+Настройки по умолчанию:
+
+```text
+SERVER_PORT=8080
+REDIS_ADDR=localhost:6379
 ```
 
 Открой:

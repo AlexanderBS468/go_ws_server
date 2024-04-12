@@ -18,6 +18,11 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+type config struct {
+	ServerPort string
+	RedisAddr  string
+}
+
 type hub struct {
 	mu      sync.Mutex
 	clients map[string]map[*websocket.Conn]struct{}
@@ -126,12 +131,9 @@ func (h *hub) broadcast(channel string, message []byte) {
 }
 
 func main() {
-	redisAddr := os.Getenv("REDIS_ADDR")
-	if redisAddr == "" {
-		redisAddr = "localhost:6379"
-	}
+	cfg := loadConfig()
 
-	broker := newRedisBroker(redisAddr)
+	broker := newRedisBroker(cfg.RedisAddr)
 	h := newHub(broker)
 	go runRedisSubscriber(broker, h)
 
@@ -144,11 +146,26 @@ func main() {
 	mux.HandleFunc("/ws/", h.handleWebSocket)
 	mux.Handle("/", http.FileServer(http.Dir("./public")))
 
-	addr := ":8080"
-	log.Printf("server listening on %s", addr)
+	addr := ":" + cfg.ServerPort
+	log.Printf("server listening on %s redis=%s", addr, cfg.RedisAddr)
 	if err := http.ListenAndServe(addr, mux); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func loadConfig() config {
+	return config{
+		ServerPort: getEnv("SERVER_PORT", "8080"),
+		RedisAddr:  getEnv("REDIS_ADDR", "localhost:6379"),
+	}
+}
+
+func getEnv(name string, fallback string) string {
+	value := os.Getenv(name)
+	if value == "" {
+		return fallback
+	}
+	return value
 }
 
 func runRedisSubscriber(broker *redisBroker, h *hub) {
