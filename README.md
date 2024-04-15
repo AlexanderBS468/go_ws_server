@@ -40,6 +40,15 @@ Message format:
 }
 ```
 
+Supported state events:
+
+```text
+login
+lead-details-open
+lead-details-close
+lead-page-out
+```
+
 Incoming WebSocket events are published to Redis using the WebSocket channel
 name as the Redis channel. The app also subscribes to Redis and broadcasts
 received events to browser clients in the matching channel.
@@ -115,6 +124,15 @@ ws://localhost:8080/ws/{channel}
   "event": "message",
   "data": "Hello WebSocket"
 }
+```
+
+Поддерживаемые события состояния:
+
+```text
+login
+lead-details-open
+lead-details-close
+lead-page-out
 ```
 
 Входящие WebSocket-события публикуются в Redis, где имя WebSocket-канала

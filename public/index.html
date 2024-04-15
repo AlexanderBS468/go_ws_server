@@ -36,6 +36,16 @@
           </div>
         </form>
 
+        <form id="lead-form" class="composer">
+          <label for="lead">Lead ID</label>
+          <div class="message-row">
+            <input id="lead" name="lead" type="number" value="101" min="1">
+            <button data-event="lead-details-open" type="button">Open</button>
+            <button data-event="lead-details-close" type="button">Close</button>
+            <button data-event="lead-page-out" type="button">Clear</button>
+          </div>
+        </form>
+
         <section class="log-wrap">
           <h2>Event log</h2>
           <div id="log" class="log"></div>

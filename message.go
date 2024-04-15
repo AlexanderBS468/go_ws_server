@@ -6,11 +6,11 @@ import (
 )
 
 type socketMessage struct {
-	Event   string `json:"event"`
-	Channel string `json:"channel"`
-	Data    string `json:"data"`
-	From    string `json:"from,omitempty"`
-	Ts      int64  `json:"ts"`
+	Event   string          `json:"event"`
+	Channel string          `json:"channel"`
+	Data    json.RawMessage `json:"data"`
+	From    string          `json:"from,omitempty"`
+	Ts      int64           `json:"ts"`
 }
 
 func normalizeMessage(channel string, from string, data []byte) ([]byte, error) {

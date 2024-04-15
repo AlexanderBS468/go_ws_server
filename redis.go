@@ -63,7 +63,7 @@ func (b *redisBroker) subscribe(pattern string, handler func(channel string, mes
 func runRedisSubscriber(broker *redisBroker, h *hub) {
 	for {
 		log.Printf("redis subscriber connecting")
-		if err := broker.subscribe("*", h.broadcast); err != nil {
+		if err := broker.subscribe("*", h.handleRedisMessage); err != nil {
 			log.Printf("redis subscriber stopped: %v", err)
 			time.Sleep(2 * time.Second)
 		}

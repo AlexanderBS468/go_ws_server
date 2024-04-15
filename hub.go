@@ -10,12 +10,14 @@ import (
 type hub struct {
 	mu      sync.Mutex
 	clients map[string]map[*websocket.Conn]struct{}
+	users   map[string]userState
 	broker  *redisBroker
 }
 
 func newHub(broker *redisBroker) *hub {
 	return &hub{
 		clients: make(map[string]map[*websocket.Conn]struct{}),
+		users:   make(map[string]userState),
 		broker:  broker,
 	}
 }
@@ -51,4 +53,17 @@ func (h *hub) broadcast(channel string, message []byte) {
 			delete(h.clients[channel], conn)
 		}
 	}
+}
+
+func (h *hub) handleRedisMessage(channel string, message []byte) {
+	out, err := h.processMessage(message)
+	if err != nil {
+		log.Printf("event processing failed channel=%s: %v", channel, err)
+		return
+	}
+	if out == nil {
+		out = message
+	}
+
+	h.broadcast(channel, out)
 }
