@@ -102,6 +102,14 @@ func (h *hub) processLeadPageOut(msg socketMessage) ([]byte, error) {
 	return h.modalsInfoMessage()
 }
 
+func (h *hub) removeUser(from string) ([]byte, error) {
+	h.mu.Lock()
+	delete(h.users, from)
+	h.mu.Unlock()
+
+	return h.modalsInfoMessage()
+}
+
 func (h *hub) modalsInfoMessage() ([]byte, error) {
 	data, err := json.Marshal(h.userModals())
 	if err != nil {

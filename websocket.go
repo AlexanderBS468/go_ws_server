@@ -32,6 +32,7 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		h.remove(channel, conn)
 		_ = conn.Close()
+		h.publishUserCleanup(channel, conn.RemoteAddr().String())
 	}()
 
 	h.add(channel, conn)
@@ -58,5 +59,17 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		if err := h.broker.publish(channel, payload); err != nil {
 			log.Printf("redis publish failed channel=%s: %v", channel, err)
 		}
+	}
+}
+
+func (h *hub) publishUserCleanup(channel string, from string) {
+	payload, err := h.removeUser(from)
+	if err != nil {
+		log.Printf("user cleanup failed channel=%s: %v", channel, err)
+		return
+	}
+
+	if err := h.broker.publish(channel, payload); err != nil {
+		log.Printf("redis cleanup publish failed channel=%s: %v", channel, err)
 	}
 }
