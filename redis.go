@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"time"
 
@@ -35,7 +36,7 @@ func (b *redisBroker) publish(channel string, message []byte) error {
 	return err
 }
 
-func (b *redisBroker) subscribe(pattern string, handler func(channel string, message []byte)) error {
+func (b *redisBroker) subscribe(ctx context.Context, pattern string, handler func(channel string, message []byte)) error {
 	conn := b.pool.Get()
 	defer conn.Close()
 
@@ -48,6 +49,17 @@ func (b *redisBroker) subscribe(pattern string, handler func(channel string, mes
 		return err
 	}
 
+	done := make(chan struct{})
+	defer close(done)
+
+	go func() {
+		select {
+		case <-ctx.Done():
+			_ = conn.Close()
+		case <-done:
+		}
+	}()
+
 	for {
 		switch event := psc.Receive().(type) {
 		case redis.Message:
@@ -55,17 +67,36 @@ func (b *redisBroker) subscribe(pattern string, handler func(channel string, mes
 		case redis.Subscription:
 			log.Printf("redis subscription: kind=%s channel=%s count=%d", event.Kind, event.Channel, event.Count)
 		case error:
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 			return event
 		}
 	}
 }
 
-func runRedisSubscriber(broker *redisBroker, h *hub) {
+func runRedisSubscriber(ctx context.Context, broker *redisBroker, h *hub) {
 	for {
+		select {
+		case <-ctx.Done():
+			log.Printf("redis subscriber stopped")
+			return
+		default:
+		}
+
 		log.Printf("redis subscriber connecting")
-		if err := broker.subscribe("*", h.handleRedisMessage); err != nil {
+		if err := broker.subscribe(ctx, "*", h.handleRedisMessage); err != nil {
+			if ctx.Err() != nil {
+				log.Printf("redis subscriber stopped")
+				return
+			}
 			log.Printf("redis subscriber stopped: %v", err)
-			time.Sleep(2 * time.Second)
+			select {
+			case <-time.After(2 * time.Second):
+			case <-ctx.Done():
+				log.Printf("redis subscriber stopped")
+				return
+			}
 		}
 	}
 }
