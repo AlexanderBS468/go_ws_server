@@ -12,13 +12,25 @@ type redisBroker struct {
 	pool *redis.Pool
 }
 
+const (
+	redisConnectTimeout = 2 * time.Second
+	redisReadTimeout    = 3 * time.Second
+	redisWriteTimeout   = 3 * time.Second
+)
+
 func newRedisBroker(addr string) *redisBroker {
 	return &redisBroker{
 		pool: &redis.Pool{
 			MaxIdle:   3,
 			MaxActive: 10,
 			Dial: func() (redis.Conn, error) {
-				return redis.Dial("tcp", addr)
+				return redis.Dial(
+					"tcp",
+					addr,
+					redis.DialConnectTimeout(redisConnectTimeout),
+					redis.DialReadTimeout(redisReadTimeout),
+					redis.DialWriteTimeout(redisWriteTimeout),
+				)
 			},
 		},
 	}

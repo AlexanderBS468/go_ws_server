@@ -4,6 +4,8 @@ Short project checklist for the next few days.
 
 ## Done
 
+Some runtime checks were added after a production smoke test.
+
 - [x] Started the base Go HTTP service.
 - [x] Added Docker setup for local development.
 - [x] Added WebSocket channels.
@@ -14,11 +16,11 @@ Short project checklist for the next few days.
 - [x] Handled graceful server shutdown.
 - [x] Moved HTTP server setup out of main.
 - [x] Added a Redis readiness endpoint.
+- [x] Added Redis connection timeouts.
 
 ## Next
 
-- [ ] Add Redis connection timeouts.
-- [ ] Add WebSocket ping/pong handling.
+- [ ] Add WebSocket ping/pong handling after the production smoke test showed stale connections.
 - [ ] Add tests for message normalization.
 - [ ] Document runtime checks and local commands.
 
