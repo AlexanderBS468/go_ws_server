@@ -21,6 +21,16 @@ func newRouter(h *hub) http.Handler {
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("go-ws-server is running\n"))
 	})
+	mux.HandleFunc("/ready", func(w http.ResponseWriter, r *http.Request) {
+		if err := h.broker.ping(); err != nil {
+			log.Printf("readiness check failed: %v", err)
+			http.Error(w, "redis is unavailable", http.StatusServiceUnavailable)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("go-ws-server is ready\n"))
+	})
 	mux.HandleFunc("/ws", requireChannel)
 	mux.HandleFunc("/ws/", h.handleWebSocket)
 	mux.Handle("/", http.FileServer(http.Dir("./public")))

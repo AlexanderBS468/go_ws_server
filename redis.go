@@ -36,6 +36,18 @@ func (b *redisBroker) publish(channel string, message []byte) error {
 	return err
 }
 
+func (b *redisBroker) ping() error {
+	conn := b.pool.Get()
+	defer conn.Close()
+
+	if err := conn.Err(); err != nil {
+		return err
+	}
+
+	_, err := conn.Do("PING")
+	return err
+}
+
 func (b *redisBroker) subscribe(ctx context.Context, pattern string, handler func(channel string, message []byte)) error {
 	conn := b.pool.Get()
 	defer conn.Close()

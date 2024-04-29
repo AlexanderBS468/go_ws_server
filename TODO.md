@@ -13,10 +13,10 @@ Short project checklist for the next few days.
 - [x] Added tests for lead modal events.
 - [x] Handled graceful server shutdown.
 - [x] Moved HTTP server setup out of main.
+- [x] Added a Redis readiness endpoint.
 
 ## Next
 
-- [ ] Add a Redis readiness endpoint.
 - [ ] Add Redis connection timeouts.
 - [ ] Add WebSocket ping/pong handling.
 - [ ] Add tests for message normalization.
