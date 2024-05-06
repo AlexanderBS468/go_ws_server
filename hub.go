@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -53,6 +54,17 @@ func (h *hub) broadcast(channel string, message []byte) {
 			delete(h.clients[channel], conn)
 		}
 	}
+}
+
+func (h *hub) writePing(channel string, conn *websocket.Conn) error {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	if _, ok := h.clients[channel][conn]; !ok {
+		return nil
+	}
+
+	return conn.WriteControl(websocket.PingMessage, nil, time.Now().Add(websocketWriteWait))
 }
 
 func (h *hub) handleRedisMessage(channel string, message []byte) {

@@ -4,8 +4,16 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
+)
+
+const (
+	websocketReadLimit  = 5120
+	websocketPongWait   = 60 * time.Second
+	websocketPingPeriod = 50 * time.Second
+	websocketWriteWait  = 10 * time.Second
 )
 
 var upgrader = websocket.Upgrader{
@@ -35,8 +43,18 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		h.publishUserCleanup(channel, conn.RemoteAddr().String())
 	}()
 
+	conn.SetReadLimit(websocketReadLimit)
+	_ = conn.SetReadDeadline(time.Now().Add(websocketPongWait))
+	conn.SetPongHandler(func(string) error {
+		return conn.SetReadDeadline(time.Now().Add(websocketPongWait))
+	})
+
 	h.add(channel, conn)
 	log.Printf("websocket connected: %s channel=%s", conn.RemoteAddr(), channel)
+
+	done := make(chan struct{})
+	defer close(done)
+	go h.pingWebSocket(channel, conn, done)
 
 	for {
 		messageType, message, err := conn.ReadMessage()
@@ -58,6 +76,24 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		log.Printf("websocket message from %s channel=%s: %s", conn.RemoteAddr(), channel, payload)
 		if err := h.broker.publish(channel, payload); err != nil {
 			log.Printf("redis publish failed channel=%s: %v", channel, err)
+		}
+	}
+}
+
+func (h *hub) pingWebSocket(channel string, conn *websocket.Conn, done <-chan struct{}) {
+	ticker := time.NewTicker(websocketPingPeriod)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ticker.C:
+			if err := h.writePing(channel, conn); err != nil {
+				log.Printf("websocket ping failed: %s: %v", conn.RemoteAddr(), err)
+				_ = conn.Close()
+				return
+			}
+		case <-done:
+			return
 		}
 	}
 }

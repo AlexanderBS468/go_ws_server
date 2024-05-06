@@ -17,10 +17,10 @@ Some runtime checks were added after a production smoke test.
 - [x] Moved HTTP server setup out of main.
 - [x] Added a Redis readiness endpoint.
 - [x] Added Redis connection timeouts.
+- [x] Added WebSocket ping/pong handling after stale connections showed up.
 
 ## Next
 
-- [ ] Add WebSocket ping/pong handling after the production smoke test showed stale connections.
 - [ ] Add tests for message normalization.
 - [ ] Document runtime checks and local commands.
 
