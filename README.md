@@ -78,6 +78,24 @@ endpoint and reading the echoed response.
 Open the page in two browser tabs to see messages broadcast between connected
 clients in the same channel.
 
+## Runtime checks
+
+```text
+GET /health
+```
+
+Checks that the HTTP process is running.
+
+```text
+GET /ready
+```
+
+Checks that the service can reach Redis with `PING`. It returns
+`503 Service Unavailable` when Redis is unavailable.
+
+The server also handles `SIGINT` and `SIGTERM` for graceful shutdown, and keeps
+WebSocket connections alive with ping/pong checks.
+
 ## Docker
 
 ```bash
@@ -91,6 +109,15 @@ http://localhost:8080
 ```
 
 The compose setup also starts a local Redis container on `localhost:6379`.
+
+Useful local commands:
+
+```bash
+docker compose build
+docker compose up
+docker compose down
+docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
+```
 
 <a id="russian"></a>
 
@@ -164,6 +191,24 @@ WebSocket endpoint и просмотра echo-ответа.
 Открой страницу в двух вкладках браузера, чтобы увидеть рассылку сообщений
 между подключенными клиентами в одном канале.
 
+## Runtime-проверки
+
+```text
+GET /health
+```
+
+Проверяет, что HTTP-процесс запущен.
+
+```text
+GET /ready
+```
+
+Проверяет доступность Redis через `PING`. Если Redis недоступен, возвращает
+`503 Service Unavailable`.
+
+Сервер также обрабатывает `SIGINT` и `SIGTERM` для graceful shutdown и
+поддерживает WebSocket-соединения через ping/pong-проверки.
+
 ## Docker
 
 ```bash
@@ -177,3 +222,12 @@ http://localhost:8080
 ```
 
 Compose-конфигурация также запускает локальный Redis на `localhost:6379`.
+
+Полезные локальные команды:
+
+```bash
+docker compose build
+docker compose up
+docker compose down
+docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
+```
