@@ -119,6 +119,16 @@ docker compose down
 docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
 ```
 
+## Production notes
+
+- Redis is a required runtime dependency because messages are delivered through
+  Pub/Sub.
+- Use `/health` for process liveness and `/ready` for Redis readiness checks.
+- Stop the container with `SIGTERM` so the HTTP server can shut down
+  gracefully.
+- Restrict allowed WebSocket origins before exposing the service outside a
+  trusted network.
+
 <a id="russian"></a>
 
 ## Русский
@@ -231,3 +241,14 @@ docker compose up
 docker compose down
 docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
 ```
+
+## Production-заметки
+
+- Redis является обязательной runtime-зависимостью, потому что сообщения
+  доставляются через Pub/Sub.
+- Используй `/health` для проверки процесса и `/ready` для проверки готовности
+  Redis.
+- Останавливай контейнер через `SIGTERM`, чтобы HTTP-сервер завершался
+  аккуратно.
+- Перед доступом вне доверенной сети нужно ограничить допустимые WebSocket
+  origins.

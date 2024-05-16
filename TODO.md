@@ -20,9 +20,9 @@ Some runtime checks were added after a production smoke test.
 - [x] Added WebSocket ping/pong handling after stale connections showed up.
 - [x] Added tests for message normalization.
 - [x] Documented runtime checks and local commands.
+- [x] Added production notes after runtime hardening.
 
 ## Later
 
-- [ ] Add more production notes after the next few changes.
 - [ ] Add GitHub Actions when the public repository is ready.
 - [ ] Review WebSocket origin checks before production use.
