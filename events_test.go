@@ -6,7 +6,7 @@ import (
 )
 
 func TestLeadModalStateEvents(t *testing.T) {
-	h := newHub(nil)
+	h := newHub(nil, nil)
 
 	processTestMessage(t, h, socketMessage{
 		Event: "login",
@@ -53,7 +53,7 @@ func TestLeadModalStateEvents(t *testing.T) {
 }
 
 func TestRemoveUserClearsModalState(t *testing.T) {
-	h := newHub(nil)
+	h := newHub(nil, nil)
 
 	processTestMessage(t, h, socketMessage{
 		Event: "login",

@@ -9,7 +9,7 @@ func main() {
 	defer stop()
 
 	broker := newRedisBroker(cfg.RedisAddr)
-	h := newHub(broker)
+	h := newHub(broker, cfg.AllowedOrigins)
 	go runRedisSubscriber(ctx, broker, h)
 
 	if err := runHTTPServer(ctx, cfg, newRouter(h)); err != nil {

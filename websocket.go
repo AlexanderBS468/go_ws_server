@@ -16,9 +16,12 @@ const (
 	websocketWriteWait  = 10 * time.Second
 )
 
-var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+func newWebSocketUpgrader(checkOrigin func(*http.Request) bool) websocket.Upgrader {
+	return websocket.Upgrader{
+		ReadBufferSize:  1024,
+		WriteBufferSize: 1024,
+		CheckOrigin:     checkOrigin,
+	}
 }
 
 func requireChannel(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +35,7 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	upgrader := newWebSocketUpgrader(h.checkWebSocketOrigin)
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Printf("websocket upgrade failed: %v", err)
@@ -78,6 +82,20 @@ func (h *hub) handleWebSocket(w http.ResponseWriter, r *http.Request) {
 			log.Printf("redis publish failed channel=%s: %v", channel, err)
 		}
 	}
+}
+
+func (h *hub) checkWebSocketOrigin(r *http.Request) bool {
+	origin := r.Header.Get("Origin")
+	if origin == "" {
+		return true
+	}
+
+	if _, ok := h.allowedOrigins[origin]; ok {
+		return true
+	}
+
+	log.Printf("websocket origin rejected: %s", origin)
+	return false
 }
 
 func (h *hub) pingWebSocket(channel string, conn *websocket.Conn, done <-chan struct{}) {

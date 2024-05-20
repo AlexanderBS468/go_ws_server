@@ -64,6 +64,7 @@ Configuration defaults:
 ```text
 SERVER_PORT=8080
 REDIS_ADDR=localhost:6379
+WS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 ```
 
 Open:
@@ -126,8 +127,8 @@ docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
 - Use `/health` for process liveness and `/ready` for Redis readiness checks.
 - Stop the container with `SIGTERM` so the HTTP server can shut down
   gracefully.
-- Restrict allowed WebSocket origins before exposing the service outside a
-  trusted network.
+- Set `WS_ALLOWED_ORIGINS` before exposing the service outside a trusted
+  network.
 
 <a id="russian"></a>
 
@@ -187,6 +188,7 @@ go run .
 ```text
 SERVER_PORT=8080
 REDIS_ADDR=localhost:6379
+WS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 ```
 
 Открой:
@@ -250,5 +252,4 @@ docker run --rm -v "$PWD":/app -w /app golang:1.20-alpine go test ./...
   Redis.
 - Останавливай контейнер через `SIGTERM`, чтобы HTTP-сервер завершался
   аккуратно.
-- Перед доступом вне доверенной сети нужно ограничить допустимые WebSocket
-  origins.
+- Перед доступом вне доверенной сети настрой `WS_ALLOWED_ORIGINS`.

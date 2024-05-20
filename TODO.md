@@ -21,8 +21,8 @@ Some runtime checks were added after a production smoke test.
 - [x] Added tests for message normalization.
 - [x] Documented runtime checks and local commands.
 - [x] Added production notes after runtime hardening.
+- [x] Reviewed WebSocket origin checks before production use.
 
 ## Later
 
 - [ ] Add GitHub Actions when the public repository is ready.
-- [ ] Review WebSocket origin checks before production use.

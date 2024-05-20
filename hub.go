@@ -9,18 +9,28 @@ import (
 )
 
 type hub struct {
-	mu      sync.Mutex
-	clients map[string]map[*websocket.Conn]struct{}
-	users   map[string]userState
-	broker  *redisBroker
+	mu             sync.Mutex
+	clients        map[string]map[*websocket.Conn]struct{}
+	users          map[string]userState
+	broker         *redisBroker
+	allowedOrigins map[string]struct{}
 }
 
-func newHub(broker *redisBroker) *hub {
+func newHub(broker *redisBroker, allowedOrigins []string) *hub {
 	return &hub{
-		clients: make(map[string]map[*websocket.Conn]struct{}),
-		users:   make(map[string]userState),
-		broker:  broker,
+		clients:        make(map[string]map[*websocket.Conn]struct{}),
+		users:          make(map[string]userState),
+		broker:         broker,
+		allowedOrigins: originSet(allowedOrigins),
 	}
+}
+
+func originSet(origins []string) map[string]struct{} {
+	result := make(map[string]struct{}, len(origins))
+	for _, origin := range origins {
+		result[origin] = struct{}{}
+	}
+	return result
 }
 
 func (h *hub) add(channel string, conn *websocket.Conn) {
