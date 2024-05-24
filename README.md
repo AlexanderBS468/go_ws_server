@@ -67,6 +67,8 @@ REDIS_ADDR=localhost:6379
 WS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 ```
 
+See `.env.example` for the local environment template.
+
 Open:
 
 ```text
@@ -190,6 +192,8 @@ SERVER_PORT=8080
 REDIS_ADDR=localhost:6379
 WS_ALLOWED_ORIGINS=http://localhost:8080,http://127.0.0.1:8080
 ```
+
+Локальный шаблон переменных окружения находится в `.env.example`.
 
 Открой:
 
